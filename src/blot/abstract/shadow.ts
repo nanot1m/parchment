@@ -1,8 +1,8 @@
-import { Blot, Parent, Formattable } from './blot';
-import * as Registry from '../../registry';
+import { Blot, Parent, Formattable } from "./blot";
+import * as Registry from "../../registry";
 
 class ShadowBlot implements Blot {
-  static blotName = 'abstract';
+  static blotName = "abstract";
   static className: string;
   static scope: Registry.Scope;
   static tagName: string;
@@ -21,17 +21,17 @@ class ShadowBlot implements Blot {
 
   static create(value: any): Node {
     if (this.tagName == null) {
-      throw new Registry.ParchmentError('Blot definition missing tagName');
+      throw new Registry.ParchmentError("Blot definition missing tagName");
     }
     let node;
     if (Array.isArray(this.tagName)) {
-      if (typeof value === 'string') {
+      if (typeof value === "string") {
         value = value.toUpperCase();
         if (parseInt(value).toString() === value) {
           value = parseInt(value);
         }
       }
-      if (typeof value === 'number') {
+      if (typeof value === "number") {
         node = document.createElement(this.tagName[value - 1]);
       } else if (this.tagName.indexOf(value) > -1) {
         node = document.createElement(value);
@@ -90,33 +90,16 @@ class ShadowBlot implements Blot {
   insertAt(index: number, value: string, def?: any): void {
     let blot =
       def == null
-        ? Registry.create('text', value)
+        ? Registry.create("text", value)
         : Registry.create(value, def);
     let ref = this.split(index);
     this.parent.insertBefore(blot, ref || undefined);
   }
 
-  insertInto(parentBlot: Parent, refBlot: Blot | null = null): void {
-    if (this.parent != null) {
-      this.parent.children.remove(this);
-    }
-    let refDomNode: Node | null = null;
-    parentBlot.children.insertBefore(this, refBlot);
-    if (refBlot != null) {
-      refDomNode = refBlot.domNode;
-    }
-    if (this.domNode.parentNode != parentBlot.domNode ||
-        this.domNode.nextSibling != refDomNode) {
-      parentBlot.domNode.insertBefore(this.domNode, refDomNode);
-    }
-    this.parent = parentBlot;
-    this.attach();
-  }
-
   isolate(index: number, length: number): Blot {
     let target = this.split(index);
     if (target == null) {
-      throw new Error('Attempt to isolate at end');
+      throw new Error("Attempt to isolate at end");
     }
     target.split(length);
     return target;
@@ -149,7 +132,7 @@ class ShadowBlot implements Blot {
 
   replaceWith(name: string | Blot, value?: any): Blot {
     const replacement =
-      typeof name === 'string' ? Registry.create(name, value) : name;
+      typeof name === "string" ? Registry.create(name, value) : name;
     if (this.parent != null) {
       this.parent.insertBefore(replacement, this.next || undefined);
       this.remove();
@@ -167,7 +150,7 @@ class ShadowBlot implements Blot {
 
   wrap(name: string | Parent, value?: any): Parent {
     let wrapper =
-      typeof name === 'string' ? <Parent>Registry.create(name, value) : name;
+      typeof name === "string" ? <Parent>Registry.create(name, value) : name;
     if (this.parent != null) {
       this.parent.insertBefore(wrapper, this.next || undefined);
     }
