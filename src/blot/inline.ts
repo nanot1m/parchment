@@ -1,10 +1,10 @@
-import Attributor from '../attributor/attributor';
-import AttributorStore from '../attributor/store';
-import { Blot, Parent, Formattable } from './abstract/blot';
-import ParentBlot from './abstract/parent';
-import LeafBlot from './abstract/leaf';
-import ShadowBlot from './abstract/shadow';
-import * as Registry from '../registry';
+import Attributor from "../attributor/attributor";
+import AttributorStore from "../attributor/store";
+import { Blot, Parent, Formattable } from "./abstract/blot";
+import ParentBlot from "./abstract/parent";
+import LeafBlot from "./abstract/leaf";
+import ShadowBlot from "./abstract/shadow";
+import * as Registry from "../registry";
 
 // Shallow object comparison
 function isEqual(obj1: Object, obj2: Object): boolean {
@@ -18,16 +18,17 @@ function isEqual(obj1: Object, obj2: Object): boolean {
 }
 
 class InlineBlot extends ParentBlot implements Formattable {
-  static blotName = 'inline';
+  static allowedChildren: Registry.BlotConstructor[] = [InlineBlot, LeafBlot];
+  static blotName = "inline";
   static scope = Registry.Scope.INLINE_BLOT;
-  static tagName = 'SPAN';
+  static tagName = "SPAN";
   protected attributes: AttributorStore;
 
   static formats(domNode: HTMLElement): any {
     const tagName = (<any>Registry.query(InlineBlot.blotName)).tagName;
     if (domNode.tagName === tagName) {
       return undefined;
-    } else if (typeof this.tagName === 'string') {
+    } else if (typeof this.tagName === "string") {
       return true;
     } else if (Array.isArray(this.tagName)) {
       return domNode.tagName.toLowerCase();
@@ -42,7 +43,7 @@ class InlineBlot extends ParentBlot implements Formattable {
 
   format(name: string, value: any) {
     if (name === this.statics.blotName && !value) {
-      this.children.forEach(child => {
+      this.children.forEach((child) => {
         if (!(child instanceof InlineBlot)) {
           child = child.wrap(InlineBlot.blotName, true);
         }
@@ -110,8 +111,8 @@ class InlineBlot extends ParentBlot implements Formattable {
   update(mutations: MutationRecord[], context: { [key: string]: any }): void {
     super.update(mutations, context);
     const attributeChanged = mutations.some(
-      mutation =>
-        mutation.target === this.domNode && mutation.type === 'attributes',
+      (mutation) =>
+        mutation.target === this.domNode && mutation.type === "attributes"
     );
     if (attributeChanged) {
       this.attributes.build();

@@ -1,7 +1,7 @@
-import { Blot, Parent, Leaf } from './blot';
-import LinkedList from '../../collection/linked-list';
-import ShadowBlot from './shadow';
-import * as Registry from '../../registry';
+import { Blot, Parent, Leaf } from "./blot";
+import LinkedList from "../../collection/linked-list";
+import ShadowBlot from "./shadow";
+import * as Registry from "../../registry";
 
 class ParentBlot extends ShadowBlot implements Parent {
   static defaultChild: Registry.BlotConstructor | null;
@@ -21,7 +21,7 @@ class ParentBlot extends ShadowBlot implements Parent {
 
   attach(): void {
     super.attach();
-    this.children.forEach(child => {
+    this.children.forEach((child) => {
       child.attach();
     });
   }
@@ -47,7 +47,7 @@ class ParentBlot extends ShadowBlot implements Parent {
     if (index === 0 && length === this.length()) {
       return this.remove();
     }
-    this.children.forEachAt(index, length, function(child, offset, length) {
+    this.children.forEachAt(index, length, function (child, offset, length) {
       child.deleteAt(offset, length);
     });
   }
@@ -55,7 +55,7 @@ class ParentBlot extends ShadowBlot implements Parent {
   descendant(criteria: { new (): Blot }, index: number): [Blot | null, number];
   descendant(
     criteria: (blot: Blot) => boolean,
-    index: number,
+    index: number
   ): [Blot | null, number];
   descendant(criteria: any, index: number): [Blot | null, number] {
     let [child, offset] = this.children.find(index);
@@ -74,50 +74,50 @@ class ParentBlot extends ShadowBlot implements Parent {
   descendants(
     criteria: { new (): Blot },
     index: number,
-    length: number,
+    length: number
   ): Blot[];
   descendants(
     criteria: (blot: Blot) => boolean,
     index: number,
-    length: number,
+    length: number
   ): Blot[];
   descendants(
     criteria: any,
     index: number = 0,
-    length: number = Number.MAX_VALUE,
+    length: number = Number.MAX_VALUE
   ): Blot[] {
     let descendants: Blot[] = [];
     let lengthLeft = length;
-    this.children.forEachAt(index, length, function(
-      child: Blot,
-      index: number,
-      length: number,
-    ) {
-      if (
-        (criteria.blotName == null && criteria(child)) ||
-        (criteria.blotName != null && child instanceof criteria)
-      ) {
-        descendants.push(child);
+    this.children.forEachAt(
+      index,
+      length,
+      function (child: Blot, index: number, length: number) {
+        if (
+          (criteria.blotName == null && criteria(child)) ||
+          (criteria.blotName != null && child instanceof criteria)
+        ) {
+          descendants.push(child);
+        }
+        if (child instanceof ParentBlot) {
+          descendants = descendants.concat(
+            child.descendants(criteria, index, lengthLeft)
+          );
+        }
+        lengthLeft -= length;
       }
-      if (child instanceof ParentBlot) {
-        descendants = descendants.concat(
-          child.descendants(criteria, index, lengthLeft),
-        );
-      }
-      lengthLeft -= length;
-    });
+    );
     return descendants;
   }
 
   detach(): void {
-    this.children.forEach(function(child) {
+    this.children.forEach(function (child) {
       child.detach();
     });
     super.detach();
   }
 
   formatAt(index: number, length: number, name: string, value: any): void {
-    this.children.forEachAt(index, length, function(child, offset, length) {
+    this.children.forEachAt(index, length, function (child, offset, length) {
       child.formatAt(offset, length, name, value);
     });
   }
@@ -129,13 +129,12 @@ class ParentBlot extends ShadowBlot implements Parent {
     } else {
       let blot =
         def == null
-          ? Registry.create('text', value)
+          ? Registry.create("text", value)
           : Registry.create(value, def);
       this.appendChild(blot);
     }
   }
 
-  // TODO handle allowedChildren
   insertBefore(childBlot: Blot, refBlot?: Blot | null): void {
     if (childBlot.parent != null) {
       childBlot.parent.children.remove(childBlot);
@@ -145,7 +144,10 @@ class ParentBlot extends ShadowBlot implements Parent {
     if (refBlot != null) {
       refDomNode = refBlot.domNode;
     }
-    if (childBlot.next == null || childBlot.domNode.nextSibling != refDomNode) {
+    if (
+      childBlot.domNode.parentNode != this.domNode ||
+      childBlot.domNode.nextSibling != refDomNode
+    ) {
       this.domNode.insertBefore(childBlot.domNode, refDomNode);
     }
     childBlot.parent = this;
@@ -153,13 +155,13 @@ class ParentBlot extends ShadowBlot implements Parent {
   }
 
   length(): number {
-    return this.children.reduce(function(memo, child) {
+    return this.children.reduce(function (memo, child) {
       return memo + child.length();
     }, 0);
   }
 
   moveChildren(targetParent: Parent, refNode?: Blot): void {
-    this.children.forEach(function(child) {
+    this.children.forEach(function (child) {
       targetParent.insertBefore(child, refNode);
     });
   }
@@ -194,7 +196,7 @@ class ParentBlot extends ShadowBlot implements Parent {
 
   replaceWith(name: string | Blot, value?: any): Blot {
     const replacement =
-      typeof name === 'string' ? Registry.create(name, value) : name;
+      typeof name === "string" ? Registry.create(name, value) : name;
     if (replacement instanceof ParentBlot) {
       this.moveChildren(replacement);
     }
@@ -208,16 +210,16 @@ class ParentBlot extends ShadowBlot implements Parent {
     }
     let after = <ParentBlot>this.clone();
     this.parent.insertBefore(after, this.next || undefined);
-    this.children.forEachAt(index, this.length(), function(
-      child,
-      offset,
-      length,
-    ) {
-      const split = child.split(offset, force);
-      if (split != null) {
-        after.appendChild(split);
+    this.children.forEachAt(
+      index,
+      this.length(),
+      function (child, offset, length) {
+        const split = child.split(offset, force);
+        if (split != null) {
+          after.appendChild(split);
+        }
       }
-    });
+    );
     return after;
   }
 
@@ -229,8 +231,8 @@ class ParentBlot extends ShadowBlot implements Parent {
   update(mutations: MutationRecord[], context: { [key: string]: any }): void {
     let addedNodes: Node[] = [];
     let removedNodes: Node[] = [];
-    mutations.forEach(mutation => {
-      if (mutation.target === this.domNode && mutation.type === 'childList') {
+    mutations.forEach((mutation) => {
+      if (mutation.target === this.domNode && mutation.type === "childList") {
         addedNodes.push.apply(addedNodes, mutation.addedNodes);
         removedNodes.push.apply(removedNodes, mutation.removedNodes);
       }
@@ -242,7 +244,7 @@ class ParentBlot extends ShadowBlot implements Parent {
       if (
         node.parentNode != null &&
         // @ts-ignore
-        node.tagName !== 'IFRAME' &&
+        node.tagName !== "IFRAME" &&
         document.body.compareDocumentPosition(node) &
           Node.DOCUMENT_POSITION_CONTAINED_BY
       ) {
@@ -258,17 +260,17 @@ class ParentBlot extends ShadowBlot implements Parent {
       }
     });
     addedNodes
-      .filter(node => {
+      .filter((node) => {
         return node.parentNode == this.domNode;
       })
-      .sort(function(a, b) {
+      .sort(function (a, b) {
         if (a === b) return 0;
         if (a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING) {
           return 1;
         }
         return -1;
       })
-      .forEach(node => {
+      .forEach((node) => {
         let refBlot: Blot | null = null;
         if (node.nextSibling != null) {
           refBlot = Registry.find(node.nextSibling);
@@ -281,6 +283,14 @@ class ParentBlot extends ShadowBlot implements Parent {
           this.insertBefore(blot, refBlot || undefined);
         }
       });
+    this.children.forEach((child: Blot) => {
+      const allowed = this.statics.allowedChildren.some(
+        (def: Registry.BlotConstructor) => child instanceof def
+      );
+      if (!allowed) {
+        child.remove();
+      }
+    });
   }
 }
 
@@ -291,7 +301,7 @@ function makeAttachedBlot(node: Node): Blot {
       blot = Registry.create(node);
     } catch (e) {
       blot = Registry.create(Registry.Scope.INLINE);
-      [].slice.call(node.childNodes).forEach(function(child: Node) {
+      [].slice.call(node.childNodes).forEach(function (child: Node) {
         // @ts-ignore
         blot.domNode.appendChild(child);
       });

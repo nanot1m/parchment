@@ -1,22 +1,29 @@
-import Attributor from '../attributor/attributor';
-import AttributorStore from '../attributor/store';
-import { Blot, Parent, Formattable } from './abstract/blot';
-import ParentBlot from './abstract/parent';
-import ShadowBlot from './abstract/shadow';
-import * as Registry from '../registry';
+import Attributor from "../attributor/attributor";
+import AttributorStore from "../attributor/store";
+import { Blot, Parent, Formattable } from "./abstract/blot";
+import ParentBlot from "./abstract/parent";
+import ShadowBlot from "./abstract/shadow";
+import LeafBlot from "./abstract/leaf";
+import InlineBlot from "./inline";
+import * as Registry from "../registry";
 
 class BlockBlot extends ParentBlot implements Formattable {
-  static blotName = 'block';
+  static allowedChildren: Registry.BlotConstructor[] = [
+    InlineBlot,
+    BlockBlot,
+    LeafBlot,
+  ];
+  static blotName = "block";
+  static requiredParent: Registry.BlotConstructor;
   static scope = Registry.Scope.BLOCK_BLOT;
-  static tagName = 'P';
-  static container: Registry.BlotConstructor;
+  static tagName = "P";
   protected attributes: AttributorStore;
 
   static formats(domNode: HTMLElement): any {
     const tagName = (<any>Registry.query(BlockBlot.blotName)).tagName;
     if (domNode.tagName === tagName) {
       return undefined;
-    } else if (typeof this.tagName === 'string') {
+    } else if (typeof this.tagName === "string") {
       return true;
     } else if (Array.isArray(this.tagName)) {
       return domNode.tagName.toLowerCase();
@@ -71,17 +78,10 @@ class BlockBlot extends ParentBlot implements Formattable {
         const blot = Registry.create(value, def);
         after.parent.insertBefore(blot, after);
       } else {
-        throw new Error('Attempt to insertAt after block boundaries');
+        throw new Error("Attempt to insertAt after block boundaries");
       }
     }
   }
-
-  // remove() {
-  //   super.remove();
-  //   if (this.statics.container != null && this.prev == null && this.next == null) {
-  //     this.parent.remove();
-  //   }
-  // }
 
   replaceWith(name: string | Blot, value?: any): Blot {
     const replacement = <BlockBlot>super.replaceWith(name, value);
@@ -96,8 +96,8 @@ class BlockBlot extends ParentBlot implements Formattable {
     } else {
       super.update(mutations, context);
       const attributeChanged = mutations.some(
-        mutation =>
-          mutation.target === this.domNode && mutation.type === 'attributes',
+        (mutation) =>
+          mutation.target === this.domNode && mutation.type === "attributes"
       );
       if (attributeChanged) {
         this.attributes.build();
