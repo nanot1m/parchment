@@ -1,12 +1,30 @@
-import LinkedList from '../../collection/linked-list';
-import LinkedNode from '../../collection/linked-node';
+import LinkedList from "../../collection/linked-list";
+import LinkedNode from "../../collection/linked-node";
+import Attributor from "../../attributor/attributor";
+import Scope from "../../scope";
+
+export interface BlotConstructor {
+  blotName: string;
+  new (scroll: Root, node: Node, value?: any): Blot;
+  create(value?: any): Node;
+}
 
 export interface Blot extends LinkedNode {
-  scroll: Parent;
+  scroll: Root;
   parent: Parent;
   prev: Blot;
   next: Blot;
   domNode: Node;
+
+  statics: {
+    allowedChildren?: BlotConstructor[];
+    blotName: string;
+    className?: string;
+    defaultChild?: BlotConstructor;
+    requiredContainer?: BlotConstructor;
+    scope: Scope;
+    tagName: string;
+  };
 
   attach(): void;
   clone(): Blot;
@@ -38,12 +56,25 @@ export interface Parent extends Blot {
   descendant<T>(type: { new (): T }, index: number): [T, number];
   descendant<T>(matcher: (blot: Blot) => boolean, index: number): [T, number];
   descendants<T>(type: { new (): T }, index: number, length: number): T[];
-  descendants<T>(matcher: (blot: Blot) => boolean, index: number, length: number): T[];
+  descendants<T>(
+    matcher: (blot: Blot) => boolean,
+    index: number,
+    length: number
+  ): T[];
   insertBefore(child: Blot, refNode?: Blot): void;
   moveChildren(parent: Parent, refNode?: Blot): void;
   path(index: number, inclusive?: boolean): [Blot, number][];
   removeChild(child: Blot): void;
   unwrap(): void;
+}
+
+export interface Root extends Parent {
+  create(input: Node | string | Scope, value?: any): Blot;
+  find(node: Node | null, bubble?: boolean): Blot | null;
+  query(
+    query: string | Node | Scope,
+    scope?: Scope
+  ): Attributor | BlotConstructor | null;
 }
 
 export interface Formattable extends Blot {

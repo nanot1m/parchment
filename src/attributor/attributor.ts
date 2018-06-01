@@ -1,31 +1,36 @@
-import * as Registry from '../registry';
+import Registry from "../registry";
+import Scope from "../scope";
 
 export interface AttributorOptions {
-  scope?: Registry.Scope;
+  scope?: Scope;
   whitelist?: string[];
 }
 
 export default class Attributor {
   attrName: string;
   keyName: string;
-  scope: Registry.Scope;
+  scope: Scope;
   whitelist: string[] | undefined;
 
   static keys(node: HTMLElement): string[] {
-    return [].map.call(node.attributes, function(item: Attr) {
+    return [].map.call(node.attributes, function (item: Attr) {
       return item.name;
     });
   }
 
-  constructor(attrName: string, keyName: string, options: AttributorOptions = {}) {
+  constructor(
+    attrName: string,
+    keyName: string,
+    options: AttributorOptions = {}
+  ) {
     this.attrName = attrName;
     this.keyName = keyName;
-    let attributeBit = Registry.Scope.TYPE & Registry.Scope.ATTRIBUTE;
+    let attributeBit = Scope.TYPE & Scope.ATTRIBUTE;
     if (options.scope != null) {
       // Ignore type bits, force attribute bit
-      this.scope = (options.scope & Registry.Scope.LEVEL) | attributeBit;
+      this.scope = (options.scope & Scope.LEVEL) | attributeBit;
     } else {
-      this.scope = Registry.Scope.ATTRIBUTE;
+      this.scope = Scope.ATTRIBUTE;
     }
     if (options.whitelist != null) this.whitelist = options.whitelist;
   }
@@ -37,11 +42,13 @@ export default class Attributor {
   }
 
   canAdd(node: HTMLElement, value: any): boolean {
-    let match = Registry.query(node, Registry.Scope.BLOT & (this.scope | Registry.Scope.TYPE));
+    const blot = Registry.find(node);
+    if (blot == null || blot.scroll == null) return false;
+    let match = blot.scroll.query(node, Scope.BLOT & (this.scope | Scope.TYPE));
     if (match == null) return false;
     if (this.whitelist == null) return true;
-    if (typeof value === 'string') {
-      return this.whitelist.indexOf(value.replace(/["']/g, '')) > -1;
+    if (typeof value === "string") {
+      return this.whitelist.indexOf(value.replace(/["']/g, "")) > -1;
     } else {
       return this.whitelist.indexOf(value) > -1;
     }
@@ -56,6 +63,6 @@ export default class Attributor {
     if (this.canAdd(node, value) && value) {
       return value;
     }
-    return '';
+    return "";
   }
 }
